@@ -205,13 +205,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.3648744, y: -0.0013963515, z: 0.0005472391, w: 0.9310556}
-  m_LocalPosition: {x: -0.5130064, y: 12.956174, z: -7.3532076}
+  m_LocalRotation: {x: 0.1564345, y: 0, z: 0, w: 0.98768836}
+  m_LocalPosition: {x: -0.5, y: 6, z: -9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 18, y: 0, z: 0}
 --- !u!114 &330585547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -476,8 +476,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dcb531f5f19163a4da92a10b9153ec37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleController
-  _translationSpeed: 1
-  _activeChunkCount: 5
+  _translationSpeed: 10
+  _activeChunkCount: 10
+  _behindChunkCount: 1
   _chunksPool:
   - {fileID: 2379290195648129566, guid: e6c24277ad985bd44b473ffba4d0e93e, type: 3}
   - {fileID: 6740103838977027947, guid: da25cf1b23c9d4847b392f5de296da82, type: 3}
@@ -559,6 +560,10 @@ PrefabInstance:
     - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
       propertyPath: _jumpHeight
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: _jumpDuration
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
       propertyPath: _currentLaneIndex
