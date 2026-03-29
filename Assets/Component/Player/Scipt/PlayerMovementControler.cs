@@ -13,10 +13,10 @@ public class PlayerMovementController : MonoBehaviour
     [Header("Slide parameters")]
     [SerializeField] private float _slideDuration = 0.5f;
     [SerializeField] private AnimationCurve _slideCurve;
-    [SerializeField] private Transform[] _sideTarget;
+    [SerializeField] public Transform[] _sideTarget;
 
     [Header("Setup")]
-    [SerializeField] private int _currentLaneIndex = 2;
+    [SerializeField] public int _currentLaneIndex = 2;
     private bool _isSliding;
     private bool _isJumping;
 

@@ -338,12 +338,15 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   _slideDuration: 0.5
-  _slideTarget:
-  - {fileID: 3598052148668177279}
-  - {fileID: 369092426979689738}
-  - {fileID: 18865854086166382}
-  - {fileID: 1393937489790797332}
-  - {fileID: 913864032838217538}
+  _slideCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _sideTarget: []
   _currentLaneIndex: 3
-  _isSliding: 0
-  _isJumping: 0
+  Move: {fileID: 0}
+  Jump: {fileID: 0}
+  Attack: {fileID: 0}
+  Mega: {fileID: 0}
