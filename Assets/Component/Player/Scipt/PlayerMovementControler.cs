@@ -1,129 +1,126 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 public class PlayerMovementController : MonoBehaviour
 {
     [Header("Jump parameters")]
     [SerializeField] private float _jumpDuration = 1f;
-    [SerializeField] private float _jumpHeight = 2f;
+    [SerializeField] private float _jumpHeight = 3f;
     [SerializeField] private AnimationCurve _jumpCurve;
     [SerializeField] private AnimationCurve _fallCurve;
 
     [Header("Slide parameters")]
-    [SerializeField] private float _slideDuration = 1f;
-    [SerializeField] private Transform[] _slideTarget;
+    [SerializeField] private float _slideDuration = 0.5f;
+    [SerializeField] private AnimationCurve _slideCurve;
+    [SerializeField] private Transform[] _sideTarget;
 
-    [Header("Debug")]
-    [SerializeField] private int _currentLaneIndex = 1;
-    [SerializeField] private bool _isSliding;
-    [SerializeField] private bool _isJumping;
+    [Header("Setup")]
+    [SerializeField] private int _currentLaneIndex = 2;
+    private bool _isSliding;
+    private bool _isJumping;
+
+    [Header("Input References")]
+    public InputActionReference Move;
+    public InputActionReference Jump;
+    public InputActionReference Attack;
+    public InputActionReference Mega;
 
 
-    public void Update()
+    private void OnEnable()
     {
-        // Jump
-        if (Keyboard.current.upArrowKey.wasPressedThisFrame)
+        // On active chaque action pour que Unity les écoute
+        Move.action.Enable();
+        Jump.action.Enable();
+        Attack.action.Enable();
+        Mega.action.Enable();
+    }
+    private void Update()
+    {
+        // --- JUMP ---
+        // On utilise .action.triggered sur la référence
+        if (Jump.action.triggered)
         {
-            if (_isJumping)
-            {
-                return;
-            }
-
-            StartCoroutine(JumpCoroutine());
+            if (!_isJumping) StartCoroutine(JumpRoutine());
         }
 
-        // Slide left
-        if (Keyboard.current.leftArrowKey.wasPressedThisFrame)
+        // --- ATTACK & MEGA ---
+        if (Attack.action.triggered) Debug.Log("Attack!");
+        if (Mega.action.triggered) Debug.Log("Mega!");
+
+        // --- MOVEMENTS (SLIDE) ---
+        if (_isSliding) return;
+
+        // On lit la valeur Vector2 de l'action Move
+        Vector2 moveVec = Move.action.ReadValue<Vector2>();
+
+        if (Move.action.triggered)
         {
-            if (_isSliding)
+            // Vers la gauche (Q / Flèche Gauche)
+            if (moveVec.x < -0.1f && _currentLaneIndex > 0)
             {
-                return;
+                _currentLaneIndex--;
+                StartCoroutine(SlideRoutine(_sideTarget[_currentLaneIndex]));
             }
-
-            if (_currentLaneIndex == 0)
+            // Vers la droite (D / Flèche Droite)
+            else if (moveVec.x > 0.1f && _currentLaneIndex < _sideTarget.Length - 1)
             {
-                return;
+                _currentLaneIndex++;
+                StartCoroutine(SlideRoutine(_sideTarget[_currentLaneIndex]));
             }
-
-            _currentLaneIndex--;
-            StartCoroutine(SlideCoroutine(_slideTarget[_currentLaneIndex]));
-        }
-
-        // Slide right
-        if (Keyboard.current.rightArrowKey.wasPressedThisFrame)
-        {
-            if (_isSliding)
-            {
-                return;
-            }
-
-            if (_currentLaneIndex == _slideTarget.Length - 1)
-            {
-                return;
-            }
-
-            _currentLaneIndex++;
-            StartCoroutine(SlideCoroutine(_slideTarget[_currentLaneIndex]));
         }
     }
 
-    private IEnumerator JumpCoroutine()
+    private IEnumerator JumpRoutine()
     {
         _isJumping = true;
         float jumpTimer = 0f;
         float halfJumpDuration = _jumpDuration / 2f;
+        float startY = transform.position.y;
 
-        // Jump
+        // Phase de montée
         while (jumpTimer < halfJumpDuration)
         {
             jumpTimer += Time.deltaTime;
-            var normalizedTime = jumpTimer / halfJumpDuration;
-
-            var targetHeight = _jumpCurve.Evaluate(normalizedTime) * _jumpHeight;
-            var targetPosition = new Vector3(transform.position.x, targetHeight, transform.position.z);
-
-            transform.position = targetPosition;
-
+            float normalTime = jumpTimer / halfJumpDuration;
+            float height = _jumpCurve.Evaluate(normalTime) * _jumpHeight;
+            transform.position = new Vector3(transform.position.x, startY + height, transform.position.z);
             yield return null;
         }
 
-        // Fall
+        // Phase de descente
         jumpTimer = 0f;
-
         while (jumpTimer < halfJumpDuration)
         {
             jumpTimer += Time.deltaTime;
-            var normalizedTime = jumpTimer / halfJumpDuration;
-
-            var targetHeight = _fallCurve.Evaluate(normalizedTime) * _jumpHeight;
-            var targetPosition = new Vector3(transform.position.x, targetHeight, transform.position.z);
-
-            transform.position = targetPosition;
-
+            float normalTime = jumpTimer / halfJumpDuration;
+            float height = _fallCurve.Evaluate(normalTime) * _jumpHeight;
+            transform.position = new Vector3(transform.position.x, startY + height, transform.position.z);
             yield return null;
         }
 
         _isJumping = false;
     }
 
-    private IEnumerator SlideCoroutine(Transform target)
+    private IEnumerator SlideRoutine(Transform target)
     {
         _isSliding = true;
-        var slideTimer = 0f;
+        float slideTimer = 0f;
+        Vector3 startPos = transform.position;
 
         while (slideTimer < _slideDuration)
         {
             slideTimer += Time.deltaTime;
+            float normalTime = slideTimer / _slideDuration;
 
-            var normalizedTime = slideTimer / _slideDuration;
-            var targetPosition = new Vector3(target.position.x, transform.position.y, target.position.z);
-
-            transform.position = Vector3.Lerp(transform.position, targetPosition, normalizedTime);
+            // On calcule le mouvement latéral (X)
+            float newX = Mathf.Lerp(startPos.x, target.position.x, _slideCurve.Evaluate(normalTime));
+            transform.position = new Vector3(newX, transform.position.y, transform.position.z);
 
             yield return null;
         }
 
+        transform.position = new Vector3(target.position.x, transform.position.y, transform.position.z);
         _isSliding = false;
     }
 }

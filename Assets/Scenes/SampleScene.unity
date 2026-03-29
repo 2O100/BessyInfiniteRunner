@@ -500,6 +500,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1508712571 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 913864032838217538, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+  m_PrefabInstance: {fileID: 6707452378344620598}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1602736628 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 18865854086166382, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
@@ -558,6 +563,22 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: Jump
+      value: 
+      objectReference: {fileID: -2099379676528639254, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: Mega
+      value: 
+      objectReference: {fileID: -7471211009204490832, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: Move
+      value: 
+      objectReference: {fileID: -1680190386980627800, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: Attack
+      value: 
+      objectReference: {fileID: 1120369429361536294, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
       propertyPath: _jumpHeight
       value: 3
       objectReference: {fileID: 0}
@@ -569,6 +590,30 @@ PrefabInstance:
       propertyPath: _currentLaneIndex
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: _sideTarget.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: '_sideTarget.Array.data[0]'
+      value: 
+      objectReference: {fileID: 1308449583}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: '_sideTarget.Array.data[1]'
+      value: 
+      objectReference: {fileID: 1076010685}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: '_sideTarget.Array.data[2]'
+      value: 
+      objectReference: {fileID: 1602736628}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: '_sideTarget.Array.data[3]'
+      value: 
+      objectReference: {fileID: 1049568159}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: '_sideTarget.Array.data[4]'
+      value: 
+      objectReference: {fileID: 1508712571}
     - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
       propertyPath: '_slideTarget.Array.data[0]'
       value: 
@@ -585,6 +630,30 @@ PrefabInstance:
       propertyPath: '_slideTarget.Array.data[3]'
       value: 
       objectReference: {fileID: 1049568159}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: _slideCurve.m_Curve.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: _slideCurve.m_Curve.Array.data[1].time
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: _slideCurve.m_Curve.Array.data[0].value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: _slideCurve.m_Curve.Array.data[1].value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: _slideCurve.m_Curve.Array.data[0].tangentMode
+      value: 34
+      objectReference: {fileID: 0}
+    - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
+      propertyPath: _slideCurve.m_Curve.Array.data[1].tangentMode
+      value: 34
+      objectReference: {fileID: 0}
     - target: {fileID: 8805741246636969565, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
       propertyPath: m_Name
       value: Player
