@@ -1,89 +1,80 @@
 using UnityEngine;
-using System.Collections;
 
 public class BossStateMachine : MonoBehaviour
 {
-    public enum BossState { Waiting, Attacking, Victory, Escaped }
+    public enum BossState { Waiting, Attacking, Victory }
+
+    [Header("Configuration des Phases")]
+    [Tooltip("Durée de la phase d'attente en secondes (ex: 120 pour 2 minutes)")]
+    public float waitingDuration = 120f;
+
+    [Header("État Actuel")]
     public BossState currentState = BossState.Waiting;
 
     [Header("Références")]
-    public PlayerMovementController player;
-    public GameObject projectilePrefab;
-    public Transform shootPoint;
-    public GameObject friendToRelease;
+    public GameObject targetLaser; // L'objet LaserTarget avec le script LaserTargetMovement
 
-    [Header("Paramètres de Temps")]
-    public float timeBetweenFights = 120f;
-    public float fightDuration = 180f;
-    public float timeBetweenProjectiles = 4f;
-
-    [Header("Statistiques")]
-    public int maxHealth = 10;
-    private int currentHealth;
-    public float speedMultiplier = 1.5f;
-
-    private float timer = 0f;
+    private float _timer = 0f;
 
     void Start()
     {
-        currentHealth = maxHealth;
-        if (friendToRelease != null) friendToRelease.SetActive(false);
+        // Au lancement, on s'assure d'être en attente et que la cible est éteinte
+        currentState = BossState.Waiting;
+        _timer = 0f;
+        if (targetLaser != null) targetLaser.SetActive(false);
     }
 
     void Update()
     {
-        if (currentState == BossState.Waiting)
+        switch (currentState)
         {
-            timer += Time.deltaTime;
-            if (timer >= timeBetweenFights)
-            {
-                StartCoroutine(BossFightSequence());
-            }
+            case BossState.Waiting:
+                UpdateWaitingState();
+                break;
+
+            case BossState.Attacking:
+                UpdateAttackingState();
+                break;
+
+            case BossState.Victory:
+                // Logique optionnelle ici (ex: le boss s'arrête de bouger)
+                if (targetLaser != null) targetLaser.SetActive(false);
+                break;
         }
     }
 
-    IEnumerator BossFightSequence()
+    private void UpdateWaitingState()
+    {
+        // On incrémente le timer
+        _timer += Time.deltaTime;
+
+        // Si on dépasse la durée configurée (modifiable dans l'inspecteur)
+        if (_timer >= waitingDuration)
+        {
+            StartAttacking();
+        }
+    }
+
+    private void UpdateAttackingState()
+    {
+        // Ici, l'attaque tourne via le script LaserTargetMovement
+        // On pourrait ajouter une condition pour arrêter l'attaque si besoin
+    }
+
+    public void StartAttacking()
     {
         currentState = BossState.Attacking;
-        currentHealth = maxHealth;
-        float fightTimer = 0f;
-        Time.timeScale = speedMultiplier;
-
-        while (fightTimer < fightDuration && currentHealth > 0)
+        _timer = 0f;
+        if (targetLaser != null)
         {
-            Shoot();
-            yield return new WaitForSeconds(timeBetweenProjectiles);
-            fightTimer += timeBetweenProjectiles;
+            targetLaser.SetActive(true);
         }
-
-        Time.timeScale = 1.0f;
-
-        if (currentHealth <= 0)
-        {
-            currentState = BossState.Victory;
-            if (friendToRelease != null) friendToRelease.SetActive(true);
-        }
-        else
-        {
-            currentState = BossState.Escaped;
-        }
-
-        yield return new WaitForSeconds(3f);
-        timer = 0;
-        currentState = BossState.Waiting;
+        Debug.Log("<color=orange>BOSS : Fin de l'attente, début de l'attaque !</color>");
     }
 
-    void Shoot()
+    public void SetVictory()
     {
-        int randomLane = Random.Range(0, player._sideTarget.Length);
-        Vector3 targetPos = player._sideTarget[randomLane].position;
-
-        GameObject proj = Instantiate(projectilePrefab, shootPoint.position, Quaternion.identity);
-        proj.GetComponent<BossProjectile>().Setup(targetPos, randomLane, this);
-    }
-
-    public void TakeDamage()
-    {
-        currentHealth--;
+        currentState = BossState.Victory;
+        if (targetLaser != null) targetLaser.SetActive(false);
     }
 }

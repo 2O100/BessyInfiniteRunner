@@ -15,6 +15,8 @@ public class ObstacleController : MonoBehaviour
 
     private readonly List<ChunkController> _instancedChunks = new();
 
+    private float speedMultiplier = 1f;
+
     private void Start()
     {
         AddBaseChunk();
@@ -99,5 +101,10 @@ public class ObstacleController : MonoBehaviour
     private ChunkController LastActiveChunk()
     {
         return _instancedChunks[_instancedChunks.Count - 1];
+    }
+
+    public void SetSpeedMultiplier(float multiplier)
+    {
+        speedMultiplier = multiplier;
     }
 }
