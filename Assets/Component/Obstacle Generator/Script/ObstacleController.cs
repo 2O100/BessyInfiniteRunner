@@ -1,103 +1,123 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class ObstacleController : MonoBehaviour
 {
     [Header("Parameters")]
-    [SerializeField, Tooltip("Vitesse de base des chunks en m/s")]
-    private float _translationSpeed = 10f;
-
-    [SerializeField, Tooltip("Multiplicateur appliqué lors de la phase Boss (modifiable dans Unity)")]
-    private float _bossSpeedMultiplier = 1.5f; // <--- MODIFIABLE DANS UNITY
-
-    [SerializeField] private int _activeChunkCount = 5;
-    [SerializeField] private int _behindChunkCount = 1;
+    [SerializeField] private float _baseLaneSpeed = 10f;
+    [SerializeField] private float _bossSpeedMultiplier = 1.5f;
+    [SerializeField] private int _activeChunkCount = 8;
+    [SerializeField] private int _chunksToKeepBehind = 2;
 
     [Header("Components")]
     [SerializeField] private ChunkController[] _chunksPool;
 
-    private readonly List<ChunkController> _instancedChunks = new();
-    private float _currentMultiplier = 1f; // Multiplicateur interne actuel (1 ou _bossSpeedMultiplier)
+    [Header("Boss Combat")]
+    public GameObject dungBallPrefab;
+    [Range(0, 100)] public float dungBallSpawnChance = 30f;
+    public BossStateMachine bossStateMachine;
 
-    private void Start()
-    {
-        AddBaseChunks();
-    }
+    private readonly List<ChunkController> _instancesChunks = new List<ChunkController>();
+    private float _currentMultiplier = 1f;
+
+    private void Start() => AddBaseChunks();
 
     private void Update()
     {
-        // Calcul de la vitesse finale
-        float finalSpeed = _translationSpeed * _currentMultiplier;
-
-        foreach (var chunk in _instancedChunks)
+        float finalSpeed = _baseLaneSpeed * _currentMultiplier;
+        foreach (var chunk in _instancesChunks)
         {
-            chunk.transform.Translate(Vector3.back * finalSpeed * Time.deltaTime);
+            if (chunk != null) chunk.transform.Translate(Vector3.back * (finalSpeed * Time.deltaTime));
         }
-
         UpdateChunks();
     }
 
     private void UpdateChunks()
     {
-        List<ChunkController> behindChunks = new();
-        foreach (var chunk in _instancedChunks)
+        List<ChunkController> behindChunks = new List<ChunkController>();
+        foreach (var chunk in _instancesChunks)
         {
-            if (chunk.IsBehindPlayer())
-            {
-                behindChunks.Add(chunk);
-            }
+            if (chunk.IsBehindPlayer()) behindChunks.Add(chunk);
         }
 
-        if (behindChunks.Count > _behindChunkCount)
+        // Garder 2 chunks derrière
+        if (behindChunks.Count > _chunksToKeepBehind)
         {
-            int chunkToDeleteCount = behindChunks.Count - _behindChunkCount;
-            for (int i = 0; i < chunkToDeleteCount; i++)
+            int chunksToDeleteCount = behindChunks.Count - _chunksToKeepBehind;
+            for (int i = 0; i < chunksToDeleteCount; i++)
             {
                 var chunkToDelete = behindChunks[i];
-                _instancedChunks.Remove(chunkToDelete);
+                _instancesChunks.Remove(chunkToDelete);
                 Destroy(chunkToDelete.gameObject);
             }
         }
 
-        int missingChunkCount = _activeChunkCount - _instancedChunks.Count;
+        int missingChunkCount = _activeChunkCount - _instancesChunks.Count;
         for (int i = 0; i < missingChunkCount; i++)
         {
+            // Utilisation de TA syntaxe exacte : .EndAnchor sans .position derrière
             var chunk = AddChunk(LastActiveChunk().EndAnchor);
-            _instancedChunks.Add(chunk);
+            _instancesChunks.Add(chunk);
+            SpawnDungBall(chunk);
+        }
+    }
+
+    private void SpawnDungBall(ChunkController targetChunk)
+    {
+        if (bossStateMachine == null || bossStateMachine.currentState != BossStateMachine.BossState.Attacking)
+            return;
+
+        if (Random.Range(0f, 100f) <= dungBallSpawnChance)
+        {
+            List<Transform> spawnPoints = new List<Transform>();
+            foreach (Transform child in targetChunk.transform)
+            {
+                if (child.name.Contains("DungBallSpawner")) spawnPoints.Add(child);
+            }
+
+            if (spawnPoints.Count > 0)
+            {
+                Transform selectedPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
+                GameObject dungBall = Instantiate(dungBallPrefab, selectedPoint.position, Quaternion.identity, targetChunk.transform);
+                dungBall.tag = "Ammo";
+            }
         }
     }
 
     private void AddBaseChunks()
     {
-        _instancedChunks.Add(AddChunk(Vector3.zero));
+        _instancesChunks.Clear();
+
+        // 1. On crée le premier chunk
+        var firstChunk = AddChunk(Vector3.zero);
+
+        // 2. Pour le décalage, on utilise la valeur brute de ton anchor
+        // On suppose que EndAnchor.z est ta longueur
+        float chunkLength = firstChunk.EndAnchor.z;
+        firstChunk.transform.position = new Vector3(0, 0, -(chunkLength * _chunksToKeepBehind));
+
+        _instancesChunks.Add(firstChunk);
 
         for (int i = 0; i < _activeChunkCount - 1; i++)
         {
-            var chunk = AddChunk(LastActiveChunk().EndAnchor);
-            _instancedChunks.Add(chunk);
+            _instancesChunks.Add(AddChunk(LastActiveChunk().EndAnchor));
         }
     }
 
     private ChunkController AddChunk(Vector3 position)
     {
         if (_chunksPool.Length == 0) return null;
-
         int index = Random.Range(0, _chunksPool.Length);
-        var chunk = Instantiate(_chunksPool[index], position, Quaternion.identity, transform);
-        return chunk;
+        return Instantiate(_chunksPool[index], position, Quaternion.identity, transform);
     }
 
     private ChunkController LastActiveChunk()
     {
-        return _instancedChunks[_instancedChunks.Count - 1];
+        return _instancesChunks[_instancesChunks.Count - 1];
     }
 
-    // --- Méthodes pour le Boss ---
-
-    // Active le boost défini dans l'inspecteur
     public void SetBossSpeedActive(bool active)
     {
         _currentMultiplier = active ? _bossSpeedMultiplier : 1f;
-        Debug.Log($"<color=cyan>ObstacleController : Multiplicateur = {_currentMultiplier}</color>");
     }
 }

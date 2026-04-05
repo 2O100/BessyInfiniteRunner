@@ -1,6 +1,7 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections;
 
 public class PlayerMovementController : MonoBehaviour
 {
@@ -19,6 +20,8 @@ public class PlayerMovementController : MonoBehaviour
     [SerializeField] public int _currentLaneIndex = 2;
     private bool _isSliding;
     private bool _isJumping;
+    public bool IsAttacking => _isAttacking;
+    private bool _isAttacking;
 
     [Header("Input References")]
     public InputActionReference Move;
@@ -45,7 +48,11 @@ public class PlayerMovementController : MonoBehaviour
         }
 
         // --- ATTACK & MEGA ---
-        if (Attack.action.triggered) Debug.Log("Attack!");
+        if (Attack.action.triggered && !_isAttacking) 
+        {
+            Debug.Log("Attack!");
+            StartCoroutine(AttackZSequence()); // Ajout de l'appel
+        }
         if (Mega.action.triggered) Debug.Log("Mega!");
 
         // --- MOVEMENTS (SLIDE) ---
@@ -122,5 +129,48 @@ public class PlayerMovementController : MonoBehaviour
 
         transform.position = new Vector3(target.position.x, transform.position.y, transform.position.z);
         _isSliding = false;
+    }
+
+    private IEnumerator AttackZSequence()
+    {
+        _isAttacking = true; // On active la protection
+
+        float startZ = transform.position.z;
+        float elapsed = 0f;
+
+        // --- PHASE 1 : AVANT ---
+        while (elapsed < 0.05f)
+        {
+            elapsed += Time.deltaTime;
+            float newZ = Mathf.Lerp(startZ, startZ + 0.5f, elapsed / 0.05f);
+            // On garde transform.position.x et .y actuels pour ne pas bloquer le Slide/Jump
+            transform.position = new Vector3(transform.position.x, transform.position.y, newZ);
+            yield return null;
+        }
+
+        // --- PHASE 2 : ARRIÈRE ---
+        elapsed = 0f;
+        while (elapsed < 0.1f)
+        {
+            elapsed += Time.deltaTime;
+            float newZ = Mathf.Lerp(startZ + 0.5f, startZ - 0.5f, elapsed / 0.1f);
+            transform.position = new Vector3(transform.position.x, transform.position.y, newZ);
+            yield return null;
+        }
+
+        // --- PHASE 3 : RETOUR ---
+        elapsed = 0f;
+        while (elapsed < 0.1f)
+        {
+            elapsed += Time.deltaTime;
+            float newZ = Mathf.Lerp(startZ - 0.5f, startZ, elapsed / 0.1f);
+            transform.position = new Vector3(transform.position.x, transform.position.y, newZ);
+            yield return null;
+        }
+
+        // On remet le Z pile à sa place d'origine
+        transform.position = new Vector3(transform.position.x, transform.position.y, startZ);
+
+        _isAttacking = false; // On désactive la protection
     }
 }

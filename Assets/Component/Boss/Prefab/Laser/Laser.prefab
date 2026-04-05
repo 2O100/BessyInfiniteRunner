@@ -12,11 +12,12 @@ GameObject:
   - component: {fileID: 454247387579843724}
   - component: {fileID: 3858849977857610040}
   - component: {fileID: 8350611245064995515}
+  - component: {fileID: -7141666842498914602}
   - component: {fileID: -8110229984169476263}
   - component: {fileID: -3971203297079215374}
   m_Layer: 0
   m_Name: Laser
-  m_TagString: Laser
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -116,6 +117,18 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+--- !u!114 &-7141666842498914602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9087251698865809578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ed64a71dd6d3454895c24aa5b6837d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObstacleDamage
 --- !u!114 &-8110229984169476263
 MonoBehaviour:
   m_ObjectHideFlags: 0

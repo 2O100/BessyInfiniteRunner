@@ -1,84 +1,119 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro; // Nécessaire pour le texte du score
-using UnityEngine.SceneManagement; // Nécessaire pour charger le Game Over
+using TMPro;
+using UnityEngine.SceneManagement;
 
-public partial class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance;
+    public static GameManager Instance; // Singleton instance to access GameManager from anywhere
 
-    [Header("Paramètres Santé")]
+    [Header("Player Settings")]
     [SerializeField] private int _maxHealth = 3;
     private int _currentHealth;
 
-    [Header("UI References (Icônes)")]
-    public Image[] healthIcons;
-    public Sprite fullBellSprite;
-    public Sprite emptyBellSprite;
+    [Header("Boss Settings")]
+    [SerializeField] private int _bossMaxHealth = 10;
+    private int _currentBossHealth;
 
-    [Header("Système de Score")]
-    public TextMeshProUGUI scoreText; // Glisse ton texte UI ici dans l'inspecteur
+    [Header("Boss References")]
+    public Transform bossShootPoint; //For CounterObstacle
+
+    [Header("UI References")]
+    public Image[] healthIcons;       // Array of UI Images (the bells)
+    public Sprite fullBellSprite;     // Sprite for active health
+    public Sprite emptyBellSprite;    // Sprite for lost health
+    public TextMeshProUGUI scoreText; // UI Text for distance
+
+    [Header("Game Progression")]
     private float _distance = 0f;
-    public float gameSpeedMultiplier = 1f; // Par défaut à 1, passera à 1.5 en boss
+    public float gameSpeedMultiplier = 16f; // Controls the scrolling speed of the world
 
     private void Awake()
     {
+        // Setup Singleton pattern
         if (Instance == null) Instance = this;
+
+        // Initialize health values
+        _currentHealth = _maxHealth;
+        _currentBossHealth = _bossMaxHealth;
     }
 
     private void Start()
     {
-        _currentHealth = _maxHealth;
-        UpdateBellUI();
+        UpdateHealthUI();
     }
 
     private void Update()
     {
-        // Calcul du score en temps réel
-        // Time.deltaTime * 1 = 1m par seconde / Time.deltaTime * 1.5 = 1.5m par seconde
+        // Increment distance based on time and current speed
         _distance += Time.deltaTime * gameSpeedMultiplier;
 
-        // Affichage du score (on arrondit à l'entier le plus proche)
+        // Update the UI text (rounded down to nearest meter)
         if (scoreText != null)
         {
             scoreText.text = Mathf.FloorToInt(_distance).ToString() + " m";
         }
     }
 
+    // Called when the player hits a standard obstacle
     public void TakeDamage()
     {
         if (_currentHealth > 0)
         {
             _currentHealth--;
-            Debug.Log("<color=magenta>Santé actuelle = </color>" + _currentHealth);
-            UpdateBellUI();
+            UpdateHealthUI();
 
-            if (_currentHealth <= 0)
-            {
-                GameOver();
-            }
+            if (_currentHealth <= 0) GameOver();
         }
     }
 
-    private void UpdateBellUI()
+    // Called when a DungBall is successfully countered back at the Boss
+    public int bossHealth = 10;
+
+    public void TakeBossDamage(int damage)
+    {
+        bossHealth -= damage;
+        // CE LOG EST INDISPENSABLE POUR SAVOIR SI CA MARCHE
+        Debug.Log("<color=red>[GameManager] Le Boss a été touché ! Vie restante : </color>" + bossHealth);
+
+        if (bossHealth <= 0)
+        {
+            Debug.Log("BOSS MORT !");
+            // Ta logique de victoire ici
+        }
+    }
+
+    // Logic executed when Boss health reaches zero
+    private void BossDefeated()
+    {
+        Debug.Log("<color=yellow>[GameManager] Boss Stunned! Switching to Waiting phase.</color>");
+
+        // Find the Boss state machine and force it back to Waiting
+        BossStateMachine boss = Object.FindFirstObjectByType<BossStateMachine>();
+        if (boss != null) boss.EndBossAttack();
+
+        // Reset Boss health for the next encounter
+        _currentBossHealth = _bossMaxHealth;
+    }
+
+    // Updates the bell icons in the UI
+    private void UpdateHealthUI()
     {
         if (healthIcons == null) return;
         for (int i = 0; i < healthIcons.Length; i++)
         {
             if (healthIcons[i] != null)
-            {
                 healthIcons[i].sprite = (i < _currentHealth) ? fullBellSprite : emptyBellSprite;
-            }
         }
     }
 
+    // Used by external triggers to speed up or slow down the game
+    public void SetSpeedMultiplier(float value) => gameSpeedMultiplier = value;
+
     private void GameOver()
     {
-        Debug.Log("GAME OVER");
-        // On sauvegarde le score dans la mémoire du jeu avant de quitter la scène
+        // Save score and switch to Game Over scene
         PlayerPrefs.SetInt("FinalScore", Mathf.FloorToInt(_distance));
-
-        // Charge la scène Game Over (vérifie bien le nom exact de ta scène)
         SceneManager.LoadScene("GameOver");
     }
 }
