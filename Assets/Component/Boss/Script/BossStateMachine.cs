@@ -4,77 +4,64 @@ public class BossStateMachine : MonoBehaviour
 {
     public enum BossState { Waiting, Attacking, Victory }
 
-    [Header("Configuration des Phases")]
-    [Tooltip("Durée de la phase d'attente en secondes (ex: 120 pour 2 minutes)")]
+    [Header("Configuration")]
     public float waitingDuration = 120f;
-
-    [Header("État Actuel")]
     public BossState currentState = BossState.Waiting;
 
     [Header("Références")]
-    public GameObject targetLaser; // L'objet LaserTarget avec le script LaserTargetMovement
+    public GameObject targetLaser;
+    public ObstacleController obstacleController;
 
     private float _timer = 0f;
 
     void Start()
     {
-        // Au lancement, on s'assure d'être en attente et que la cible est éteinte
         currentState = BossState.Waiting;
         _timer = 0f;
-        if (targetLaser != null) targetLaser.SetActive(false);
+
+        if (targetLaser != null)
+            targetLaser.SetActive(false);
+
+        // Vitesse normale au début
+        if (obstacleController != null)
+            obstacleController.SetBossSpeedActive(false);
     }
 
     void Update()
     {
-        switch (currentState)
+        if (currentState == BossState.Waiting)
         {
-            case BossState.Waiting:
-                UpdateWaitingState();
-                break;
+            _timer += Time.deltaTime;
 
-            case BossState.Attacking:
-                UpdateAttackingState();
-                break;
-
-            case BossState.Victory:
-                // Logique optionnelle ici (ex: le boss s'arrête de bouger)
-                if (targetLaser != null) targetLaser.SetActive(false);
-                break;
+            if (_timer >= waitingDuration)
+            {
+                TriggerBossAttack();
+            }
         }
     }
 
-    private void UpdateWaitingState()
-    {
-        // On incrémente le timer
-        _timer += Time.deltaTime;
-
-        // Si on dépasse la durée configurée (modifiable dans l'inspecteur)
-        if (_timer >= waitingDuration)
-        {
-            StartAttacking();
-        }
-    }
-
-    private void UpdateAttackingState()
-    {
-        // Ici, l'attaque tourne via le script LaserTargetMovement
-        // On pourrait ajouter une condition pour arrêter l'attaque si besoin
-    }
-
-    public void StartAttacking()
+    private void TriggerBossAttack()
     {
         currentState = BossState.Attacking;
-        _timer = 0f;
+        Debug.Log("<color=red>BOSS : PHASE ATTACKING !</color>");
+
         if (targetLaser != null)
-        {
             targetLaser.SetActive(true);
-        }
-        Debug.Log("<color=orange>BOSS : Fin de l'attente, début de l'attaque !</color>");
+
+        // On active le mode vitesse Boss
+        if (obstacleController != null)
+            obstacleController.SetBossSpeedActive(true);
     }
 
-    public void SetVictory()
+    public void EndBossAttack()
     {
         currentState = BossState.Victory;
-        if (targetLaser != null) targetLaser.SetActive(false);
+
+        if (targetLaser != null)
+            targetLaser.SetActive(false);
+
+        // Retour à la vitesse normale
+        if (obstacleController != null)
+            obstacleController.SetBossSpeedActive(false);
     }
 }

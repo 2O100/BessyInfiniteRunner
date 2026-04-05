@@ -5,8 +5,10 @@ public class EventSystem : MonoBehaviour
 {
     public static EventSystem EventSystemInstance;
 
-    // Événement qui transporte la position de la cible
     public event Action<Vector3> OnPlayerOnTarget;
+    public event Action OnTargetReset;
+
+    public event Action OnPlayerHit;
 
     private void Awake()
     {
@@ -16,5 +18,25 @@ public class EventSystem : MonoBehaviour
     public void TriggerPlayerOnTarget(Vector3 targetPos)
     {
         OnPlayerOnTarget?.Invoke(targetPos);
+    }
+
+    public void TriggerTargetReset()
+    {
+        OnTargetReset?.Invoke();
+    }
+
+    // Appelé par ton PlayerCollisionController
+    public void TriggerPlayerHit()
+    {
+        Debug.Log("<color=yellow>EVENTSYSTEM : J'ai reçu l'alerte du Player, je contacte le GameManager...</color>");
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.TakeDamage();
+        }
+        else
+        {
+            Debug.LogError("EVENTSYSTEM : Je ne trouve pas le GameManager ! Vérifie qu'il est bien dans ta scène.");
+        }
     }
 }

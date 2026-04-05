@@ -1,18 +1,26 @@
 using UnityEngine;
-using System.Collections;
 
 public class LaserTargetMovement : MonoBehaviour
 {
-    [Header("Réglages Temps")]
-    public float flashingDuration = 5f;
-    public float activeDuration = 1f;
+    public enum TargetState { Inactive, Targeting, Fire }
+
+    [Header("État Actuel")]
+    public TargetState currentState = TargetState.Inactive;
+
+    [Header("Réglages")]
+    public float targetingDuration = 5f; // Temps de clignotement
+    public float fireDuration = 2f;      // Fenêtre de tir max avant reset auto
     public float flashSpeed = 0.2f;
 
     [Header("Références")]
     public UFOLaserShooter ufo;
+    public Transform[] targetSlides;
+    public AudioSource alertAudio;
 
     private SpriteRenderer _sprite;
     private SphereCollider _collider;
+    private float _stateTimer;
+    private float _flashTimer;
 
     private void Awake()
     {
@@ -22,38 +30,81 @@ public class LaserTargetMovement : MonoBehaviour
 
     private void OnEnable()
     {
-        StartCoroutine(AttackRoutine());
+        // On écoute le signal de reset venant de l'UFO
+        if (EventSystem.EventSystemInstance != null)
+            EventSystem.EventSystemInstance.OnTargetReset += ForceExternalReset;
+
+        TransitionToState(TargetState.Targeting);
     }
 
-    IEnumerator AttackRoutine()
+    private void OnDisable()
     {
-        while (true)
+        if (EventSystem.EventSystemInstance != null)
+            EventSystem.EventSystemInstance.OnTargetReset -= ForceExternalReset;
+    }
+
+    private void Update()
+    {
+        _stateTimer += Time.deltaTime;
+
+        switch (currentState)
         {
-            // 1. PHASE PRÉPARATION (Clignotement)
-            if (ufo != null) ufo.SetAttackWindow(false); // UFO interdit de tirer
+            case TargetState.Targeting:
+                UpdateTargeting();
+                break;
+            case TargetState.Fire:
+                UpdateFire();
+                break;
+        }
+    }
+
+    private void TransitionToState(TargetState newState)
+    {
+        currentState = newState;
+        _stateTimer = 0f;
+
+        if (newState == TargetState.Targeting)
+        {
+            // Téléportation aléatoire sur une slide
+            if (targetSlides != null && targetSlides.Length > 0)
+                transform.position = targetSlides[Random.Range(0, targetSlides.Length)].position;
+
             _collider.enabled = false;
-
-            float t = 0;
-            while (t < flashingDuration)
-            {
-                _sprite.enabled = !_sprite.enabled;
-                yield return new WaitForSeconds(flashSpeed);
-                t += flashSpeed;
-            }
-
-            // 2. PHASE ACTIVE (Le moment où le tir est possible)
+            if (ufo != null) ufo.SetAttackWindow(false);
+            if (alertAudio != null) alertAudio.Play();
+        }
+        else if (newState == TargetState.Fire)
+        {
             _sprite.enabled = true;
             _collider.enabled = true;
-
-            if (ufo != null) ufo.SetAttackWindow(true); // ON OUVRE LA FENÊTRE DE TIR
-
-            yield return new WaitForSeconds(activeDuration);
-
-            // 3. PHASE REPOS
-            if (ufo != null) ufo.SetAttackWindow(false); // ON REFERME LA FENÊTRE
-            _collider.enabled = false;
-            _sprite.enabled = false;
-            yield return new WaitForSeconds(1f);
+            if (ufo != null) ufo.SetAttackWindow(true);
+            if (alertAudio != null) alertAudio.Stop();
         }
+    }
+
+    private void UpdateTargeting()
+    {
+        _flashTimer += Time.deltaTime;
+        if (_flashTimer >= flashSpeed)
+        {
+            _sprite.enabled = !_sprite.enabled;
+            _flashTimer = 0;
+        }
+
+        if (_stateTimer >= targetingDuration)
+            TransitionToState(TargetState.Fire);
+    }
+
+    private void UpdateFire()
+    {
+        // RESET AUTO : Si le temps expire sans que le joueur déclenche un tir
+        if (_stateTimer >= fireDuration)
+            TransitionToState(TargetState.Targeting);
+    }
+
+    public void ForceExternalReset()
+    {
+        // Appelé via l'EventSystem quand l'UFO a fini de tirer
+        TransitionToState(TargetState.Targeting);
     }
 }

@@ -1,12 +1,15 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
-using Random = UnityEngine.Random;
+using System.Collections.Generic;
 
 public class ObstacleController : MonoBehaviour
 {
     [Header("Parameters")]
-    [SerializeField, Tooltip("Translation speed of chunks in m/s")] private float _translationSpeed = 1f;
+    [SerializeField, Tooltip("Vitesse de base des chunks en m/s")]
+    private float _translationSpeed = 10f;
+
+    [SerializeField, Tooltip("Multiplicateur appliqué lors de la phase Boss (modifiable dans Unity)")]
+    private float _bossSpeedMultiplier = 1.5f; // <--- MODIFIABLE DANS UNITY
+
     [SerializeField] private int _activeChunkCount = 5;
     [SerializeField] private int _behindChunkCount = 1;
 
@@ -14,19 +17,21 @@ public class ObstacleController : MonoBehaviour
     [SerializeField] private ChunkController[] _chunksPool;
 
     private readonly List<ChunkController> _instancedChunks = new();
-
-    private float speedMultiplier = 1f;
+    private float _currentMultiplier = 1f; // Multiplicateur interne actuel (1 ou _bossSpeedMultiplier)
 
     private void Start()
     {
-        AddBaseChunk();
+        AddBaseChunks();
     }
 
     private void Update()
     {
+        // Calcul de la vitesse finale
+        float finalSpeed = _translationSpeed * _currentMultiplier;
+
         foreach (var chunk in _instancedChunks)
         {
-            chunk.transform.Translate(Vector3.back * _translationSpeed * Time.deltaTime);
+            chunk.transform.Translate(Vector3.back * finalSpeed * Time.deltaTime);
         }
 
         UpdateChunks();
@@ -35,7 +40,6 @@ public class ObstacleController : MonoBehaviour
     private void UpdateChunks()
     {
         List<ChunkController> behindChunks = new();
-
         foreach (var chunk in _instancedChunks)
         {
             if (chunk.IsBehindPlayer())
@@ -44,41 +48,31 @@ public class ObstacleController : MonoBehaviour
             }
         }
 
-        // Delete potential chunks behind player.
         if (behindChunks.Count > _behindChunkCount)
         {
             int chunkToDeleteCount = behindChunks.Count - _behindChunkCount;
-
             for (int i = 0; i < chunkToDeleteCount; i++)
             {
                 var chunkToDelete = behindChunks[i];
                 _instancedChunks.Remove(chunkToDelete);
-
                 Destroy(chunkToDelete.gameObject);
             }
         }
 
-        // Add potential new chunks.
         int missingChunkCount = _activeChunkCount - _instancedChunks.Count;
         for (int i = 0; i < missingChunkCount; i++)
         {
             var chunk = AddChunk(LastActiveChunk().EndAnchor);
             _instancedChunks.Add(chunk);
         }
-
     }
 
-    private void AddBaseChunk()
+    private void AddBaseChunks()
     {
-        for (int i = 0; i < _activeChunkCount; i++)
-        {
-            if (i == 0)
-            {
-                var baseChunk = AddChunk(transform.position);
-                _instancedChunks.Add(baseChunk);
-                continue;
-            }
+        _instancedChunks.Add(AddChunk(Vector3.zero));
 
+        for (int i = 0; i < _activeChunkCount - 1; i++)
+        {
             var chunk = AddChunk(LastActiveChunk().EndAnchor);
             _instancedChunks.Add(chunk);
         }
@@ -86,15 +80,10 @@ public class ObstacleController : MonoBehaviour
 
     private ChunkController AddChunk(Vector3 position)
     {
-        if (_chunksPool.Length == 0)
-        {
-            Debug.LogError("No chunks in pool");
-            return null;
-        }
+        if (_chunksPool.Length == 0) return null;
 
-        var index = Random.Range(0, _chunksPool.Length);
-        ChunkController chunk = Instantiate(_chunksPool[index], position, Quaternion.identity);
-
+        int index = Random.Range(0, _chunksPool.Length);
+        var chunk = Instantiate(_chunksPool[index], position, Quaternion.identity, transform);
         return chunk;
     }
 
@@ -103,8 +92,12 @@ public class ObstacleController : MonoBehaviour
         return _instancedChunks[_instancedChunks.Count - 1];
     }
 
-    public void SetSpeedMultiplier(float multiplier)
+    // --- Méthodes pour le Boss ---
+
+    // Active le boost défini dans l'inspecteur
+    public void SetBossSpeedActive(bool active)
     {
-        speedMultiplier = multiplier;
+        _currentMultiplier = active ? _bossSpeedMultiplier : 1f;
+        Debug.Log($"<color=cyan>ObstacleController : Multiplicateur = {_currentMultiplier}</color>");
     }
 }

@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Laser
   - LaserTarget
+  - Obstacle
   layers:
   - Default
   - TransparentFX
