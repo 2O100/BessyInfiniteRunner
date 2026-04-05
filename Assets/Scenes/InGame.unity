@@ -1351,8 +1351,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd61b1215fc84a1489d5141bf00580cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Components.Player.Scripts.PlayerCollisionController
-  _sphereCenter: {x: 0, y: 0.95, z: 1}
+  _sphereCenter: {x: 0, y: 1, z: 1}
   _sphereRadius: 1
+  _damageCooldown: 1.5
 --- !u!1 &2081390803
 GameObject:
   m_ObjectHideFlags: 0
@@ -1422,7 +1423,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8551652297158520840, guid: 0a3f1796dc2508d4f90412bfa8e7c06f, type: 3}
       propertyPath: waitingDuration
-      value: 20
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: -8551652297158520840, guid: 0a3f1796dc2508d4f90412bfa8e7c06f, type: 3}
       propertyPath: timeBeforeAttack
@@ -1613,7 +1614,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
       propertyPath: _jumpDuration
-      value: 1
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 5590131752895752930, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
       propertyPath: _slideDuration

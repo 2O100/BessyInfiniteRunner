@@ -1,5 +1,6 @@
 using UnityEngine;
-using UnityEngine.UI; // Nécessaire pour manipuler les Images UI
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -68,7 +69,8 @@ public class GameManager : MonoBehaviour
 
             if (_currentHealth <= 0)
             {
-                GameOver(); // Ta fonction de fin de jeu
+                Debug.Log("PLUS DE VIE ! Direction Game Over...");
+                Invoke("LoadGameOver", 1f); // On attend 1 seconde avant de changer pour voir la dernière cloche
             }
         }
     }
@@ -115,5 +117,9 @@ public class GameManager : MonoBehaviour
         Debug.Log("<color=red>GAME OVER</color>");
         // Time.timeScale = 0f; 
         // Afficher l'écran de Game Over ici
+    }
+    void LoadGameOver()
+    {
+        SceneManager.LoadScene("GameOver");
     }
 }
