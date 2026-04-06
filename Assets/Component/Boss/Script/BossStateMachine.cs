@@ -36,9 +36,15 @@ public class BossStateMachine : MonoBehaviour
     }
 
     private void TriggerBossAttack()
+{
+    currentState = BossState.Attacking;
+
+    // C'EST CETTE LIGNE QUI FAIT LE +1 PV ET RESET LA BARRE
+    if (GameManager.Instance != null) 
     {
-        currentState = BossState.Attacking;
-        Debug.Log("<color=red>BOSS : PHASE ATTAQUE !</color>");
+        GameManager.Instance.LevelUpBoss();
+        GameManager.Instance.ShowBossHealthBar(true);
+    }
 
         if (targetLaser != null) targetLaser.SetActive(true);
         if (obstacleController != null) obstacleController.SetBossSpeedActive(true);
@@ -52,7 +58,20 @@ public class BossStateMachine : MonoBehaviour
 
         Debug.Log("<color=blue>BOSS : Retour en phase ATTENTE</color>");
 
+        if (GameManager.Instance != null) GameManager.Instance.ShowBossHealthBar(false);
         if (targetLaser != null) targetLaser.SetActive(false);
         if (obstacleController != null) obstacleController.SetBossSpeedActive(false);
+    }
+
+    void OnEnable()
+    {
+        // On s'abonne à l'événement
+        EventSystem.OnBossDefeated += EndBossAttack;
+    }
+
+    void OnDisable()
+    {
+        // TRÈS IMPORTANT : On se désabonne quand l'objet est détruit pour éviter les bugs
+        EventSystem.OnBossDefeated -= EndBossAttack;
     }
 }

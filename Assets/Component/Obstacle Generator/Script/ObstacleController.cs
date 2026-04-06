@@ -17,8 +17,13 @@ public class ObstacleController : MonoBehaviour
     [Range(0, 100)] public float dungBallSpawnChance = 30f;
     public BossStateMachine bossStateMachine;
 
+    [Header("Bonus Settings")]
+    [SerializeField] private GameObject bonusPrefab;
+    private bool _shouldSpawnBonus = false;
+
     private readonly List<ChunkController> _instancesChunks = new List<ChunkController>();
     private float _currentMultiplier = 1f;
+
 
     private void Start() => AddBaseChunks();
 
@@ -62,10 +67,37 @@ public class ObstacleController : MonoBehaviour
         }
     }
 
-    private void SpawnDungBall(ChunkController targetChunk)
+    private void OnEnable()
+    {
+        // On s'abonne à l'événement de mort du boss
+        if (EventSystem.EventSystemInstance != null)
+        {
+            EventSystem.OnBossDefeated += PrepareBonus;
+        }
+    }
+
+    private void OnDisable()
+    {
+        // TRÈS IMPORTANT : On se désabonne pour éviter les fuites de mémoire
+        if (EventSystem.EventSystemInstance != null)
+        {
+            EventSystem.OnBossDefeated -= PrepareBonus;
+        }
+    }
+
+    private void PrepareBonus()
+    {
+        _shouldSpawnBonus = true;
+
+        Debug.Log("<color=green>[ObstacleController]</color> Bonus prêt pour le prochain spawn !");
+    }
+
+    public void SpawnDungBall(ChunkController targetChunk)
     {
         if (bossStateMachine == null || bossStateMachine.currentState != BossStateMachine.BossState.Attacking)
             return;
+
+
 
         if (Random.Range(0f, 100f) <= dungBallSpawnChance)
         {
@@ -79,7 +111,6 @@ public class ObstacleController : MonoBehaviour
             {
                 Transform selectedPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
                 GameObject dungBall = Instantiate(dungBallPrefab, selectedPoint.position, Quaternion.identity, targetChunk.transform);
-                dungBall.tag = "Ammo";
             }
         }
     }

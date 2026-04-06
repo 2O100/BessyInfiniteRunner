@@ -32,11 +32,18 @@ public class EventSystem : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.TakeDamage();
+            GameManager.Instance.TakeDamage(1);
         }
         else
         {
             Debug.LogError("EVENTSYSTEM : Je ne trouve pas le GameManager ! Vérifie qu'il est bien dans ta scène.");
         }
+    }
+
+    public static event Action OnBossDefeated;
+    public void TriggerBossDefeated()
+    {
+        Debug.Log("<color=cyan>EVENTSYSTEM : Le Boss est vaincu, j'alerte les autres systèmes...</color>");
+        OnBossDefeated?.Invoke();
     }
 }
