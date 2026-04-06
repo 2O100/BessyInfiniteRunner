@@ -177,7 +177,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   _maxHealth: 3
-  _bossMaxHealth: 10
+  _bossMaxHealth: 2
   bossPercentText: {fileID: 378385034}
   bossShootPoint: {fileID: 2081390804}
   healthIcons:
@@ -189,7 +189,7 @@ MonoBehaviour:
   scoreText: {fileID: 2037736654}
   bossHealthSlider: {fileID: 1454793027}
   gameSpeedMultiplier: 1
-  bossHealth: 10
+  bossHealth: 2
 --- !u!1 &120911255
 GameObject:
   m_ObjectHideFlags: 0
@@ -783,8 +783,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 209139886}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -955,9 +955,21 @@ MonoBehaviour:
   - {fileID: 5235620677760016768, guid: da25cbbc2153ff2459aa3d77d68dba15, type: 3}
   - {fileID: 1050779697360485410, guid: a69ec152d05632940889f6cf14f9d8ad, type: 3}
   - {fileID: 2889941642139020847, guid: 79453bd30b729074398271ce7e57f4a1, type: 3}
+  - {fileID: 2379290195648129566, guid: f623ef963f3edd746aa53f0920b1f603, type: 3}
+  - {fileID: 2379290195648129566, guid: bbee7955e0f500f4b93bf04daa751a9e, type: 3}
+  - {fileID: 2379290195648129566, guid: 5dd35243530b03a458df83ee25b09c1f, type: 3}
+  - {fileID: 2379290195648129566, guid: 991b09aae25d2c842b207448163625fc, type: 3}
+  - {fileID: 2379290195648129566, guid: 975ba885e3f185943a576fa46f2a39e5, type: 3}
+  - {fileID: 2379290195648129566, guid: ea5dc292fe0b25e489f02eb55ec83fe8, type: 3}
+  - {fileID: 2379290195648129566, guid: 9bafe66504e519e4c8e795087563443a, type: 3}
+  - {fileID: 2379290195648129566, guid: 0613bfa9e71c69949adb71566b2c47e8, type: 3}
+  - {fileID: 2379290195648129566, guid: 66a9f31b3a49d5446adb2a926c9ed1e7, type: 3}
+  - {fileID: 2379290195648129566, guid: 5e860a5a9643a704ebc45400f12ad861, type: 3}
+  - {fileID: 2379290195648129566, guid: e2309531f27308d41b3e5de382f3a31f, type: 3}
   dungBallPrefab: {fileID: 5588266244712862262, guid: 7ca9f99a7baae9849874ad5736ca486e, type: 3}
   dungBallSpawnChance: 33.33
   bossStateMachine: {fileID: 7766532240307243345}
+  bonusPrefab: {fileID: 281673621905967424, guid: 21da7a9a4678cfc449cd60f61fab8025, type: 3}
 --- !u!4 &1372853539
 Transform:
   m_ObjectHideFlags: 0
@@ -989,7 +1001,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1454793026
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1005,6 +1017,7 @@ RectTransform:
   - {fileID: 2037376884}
   - {fileID: 209139886}
   - {fileID: 378385033}
+  - {fileID: 1578369966}
   m_Father: {fileID: 1662827219}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
@@ -1218,7 +1231,7 @@ AudioSource:
   m_Volume: 0.4
   m_Pitch: 1
   Loop: 0
-  Mute: 0
+  Mute: 1
   Spatialize: 0
   SpatializePostEffects: 0
   Priority: 128
@@ -1304,6 +1317,143 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 913864032838217538, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
   m_PrefabInstance: {fileID: 6707452378344620598}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1578369965
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1578369966}
+  - component: {fileID: 1578369968}
+  - component: {fileID: 1578369967}
+  m_Layer: 5
+  m_Name: Text Boss Life
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1578369966
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1578369965}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1454793026}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchoredPosition: {x: 111, y: 0}
+  m_SizeDelta: {x: 200, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1578369967
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1578369965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: BOSS LIFE
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 36
+  m_fontSizeBase: 36
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &1578369968
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1578369965}
+  m_CullTransparentMesh: 1
 --- !u!4 &1602736628 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 18865854086166382, guid: 2fe8f59cc14c2bb469229a2b735d8e26, type: 3}
@@ -1923,7 +2073,7 @@ PrefabInstance:
       objectReference: {fileID: 1498610774}
     - target: {fileID: -8551652297158520840, guid: 0a3f1796dc2508d4f90412bfa8e7c06f, type: 3}
       propertyPath: waitingDuration
-      value: 15
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: -8551652297158520840, guid: 0a3f1796dc2508d4f90412bfa8e7c06f, type: 3}
       propertyPath: obstacleController
