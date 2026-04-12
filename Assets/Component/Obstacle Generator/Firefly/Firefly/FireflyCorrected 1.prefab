@@ -46,10 +46,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9a9d40a6cd365f4ba71e7ee626dc034, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FireflyCollectible
-  scoreValue: 1
-  bobbingSpeed: 3
-  minY: 0.75
-  maxY: 2.5
+  _scoreValue: 1
+  _minHeight: 0.8
+  _maxHeight: 2.2
+  _speed: 4
+  _collectEffect: {fileID: 0}
 --- !u!135 &3116046538086669905
 SphereCollider:
   m_ObjectHideFlags: 0

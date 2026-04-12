@@ -3,6 +3,9 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Central manager for game logic, UI updates, and data persistence.
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     // Singleton instance to allow easy access from any other script
@@ -53,6 +56,26 @@ public class GameManager : MonoBehaviour
         if (bossHealthSlider != null) bossHealthSlider.maxValue = _bossMaxHealth;
     }
 
+    // --- EVENT SUBSCRIPTION ---
+    // This connects the GameManager to the EventSystem signals
+    private void OnEnable()
+    {
+        if (EventSystem.EventSystemInstance != null)
+        {
+            // Subscribe to the firefly collection event
+            EventSystem.EventSystemInstance.OnFireflyCollected += AddScore;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (EventSystem.EventSystemInstance != null)
+        {
+            // Unsubscribe to avoid memory leaks or errors
+            EventSystem.EventSystemInstance.OnFireflyCollected -= AddScore;
+        }
+    }
+
     private void Update()
     {
         // Continuous distance calculation based on time and speed
@@ -61,17 +84,20 @@ public class GameManager : MonoBehaviour
         // Update the distance UI (rounded to nearest integer)
         if (scoreText != null)
         {
-            scoreText.text = "LENGHT " + Mathf.FloorToInt(_distance).ToString() + " CM";
+            scoreText.text = "DISTANCE " + Mathf.FloorToInt(_distance).ToString() + " CM";
         }
     }
 
     // --- COLLECTIBLE SYSTEM ---
 
-    // Adds fireflies and updates the counter
+    /// <summary>
+    /// Adds fireflies and updates the counter. Called via EventSystem.
+    /// </summary>
     public void AddScore(int amount)
     {
         _fireflyCount += amount;
         UpdateFireflyUI();
+        Debug.Log($"<color=green>GM: Added {amount} fireflies. Total: {_fireflyCount}</color>");
     }
 
     // Refreshes the firefly count on the screen
@@ -85,20 +111,15 @@ public class GameManager : MonoBehaviour
 
     // --- PLAYER & BOSS LOGIC ---
 
-    // Handles player damage and healing (if amount is negative)
     public void TakeDamage(int amount)
     {
         _currentHealth -= amount;
-        // Ensure health stays between 0 and max
         _currentHealth = Mathf.Clamp(_currentHealth, 0, _maxHealth);
-
         UpdateHealthUI();
 
-        // Trigger Game Over if health reaches zero
         if (_currentHealth <= 0) GameOver();
     }
 
-    // Handles boss damage when a projectile is countered
     public void TakeBossDamage(int damage)
     {
         if (_currentBossHealth <= 0) return;
@@ -106,54 +127,53 @@ public class GameManager : MonoBehaviour
         _currentBossHealth -= damage;
         UpdateBossUI();
 
-        // Check for boss defeat
         if (_currentBossHealth <= 0)
         {
             _currentBossHealth = 0;
-            // Notify the event system that the boss is down
             EventSystem.EventSystemInstance?.TriggerBossDefeated();
         }
     }
 
-    // Updates the boss health bar and percentage text
     private void UpdateBossUI()
     {
         if (bossHealthSlider != null) bossHealthSlider.value = _currentBossHealth;
 
         if (bossPercentText != null)
         {
-            // Cast to float for accurate percentage calculation
             float percentage = ((float)_currentBossHealth / (float)_bossMaxHealth) * 100f;
             bossPercentText.text = percentage.ToString("F2") + "%";
         }
     }
 
-    // Updates the health icons (bells) based on current health
     private void UpdateHealthUI()
     {
         if (healthIcons == null) return;
         for (int i = 0; i < healthIcons.Length; i++)
         {
             if (healthIcons[i] != null)
-                // If index is less than current health, show full bell; else show empty
                 healthIcons[i].sprite = (i < _currentHealth) ? fullBellSprite : emptyBellSprite;
         }
     }
 
-    // Toggles the visibility of the boss HUD
     public void ShowBossHealthBar(bool isVisible) => bossHealthSlider?.gameObject.SetActive(isVisible);
 
-    // Reserved for boss evolution mechanics
     public void LevelUpBoss() { /* Level up logic here */ }
 
-    // Finalizes the game session and saves scores
+    // --- GAME OVER & PERSISTENCE ---
+
     private void GameOver()
     {
-        // Save final stats to PlayerPrefs to retrieve them in the GameOver scene
+        // 1. Temporary storage for the GameOver scene display
         PlayerPrefs.SetInt("FinalDistance", Mathf.FloorToInt(_distance));
         PlayerPrefs.SetInt("FinalFireflies", _fireflyCount);
 
-        // Load the final scene
+        // 2. Persistent storage using JSON (for Highscores and Lifetime totals)
+        if (SaveManager.LoadData() != null)
+        {
+            SaveManager.SaveRun(_fireflyCount, _distance);
+        }
+
+        // 3. Change Scene
         SceneManager.LoadScene("GameOver");
     }
 }

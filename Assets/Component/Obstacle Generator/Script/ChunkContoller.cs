@@ -20,4 +20,11 @@ public class ChunkController : MonoBehaviour
     {
         speedMultiplier = multiplier;
     }
+
+    void Update()
+    {
+        // Moves the chunk backwards relative to the player to simulate forward movement
+        // Vector3.back is equivalent to (0, 0, -1)
+        transform.Translate(Vector3.back * Time.deltaTime * speedMultiplier);
+    }
 }
