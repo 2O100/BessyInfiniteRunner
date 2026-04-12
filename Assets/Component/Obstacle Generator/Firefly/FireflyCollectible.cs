@@ -1,43 +1,41 @@
 using UnityEngine;
 
-public class FireflyCollectible : CollidableObject
+/// <summary>
+/// Script for the firefly collectible items.
+/// Communicates via the EventSystem to update global score.
+/// </summary>
+public class FireflyCollectible : MonoBehaviour
 {
-    [Header("Firefly Settings")]
-    [SerializeField] private int scoreValue = 1; 
-    [SerializeField] private float bobbingSpeed = 3f;
+    [Header("Settings")]
+    [Tooltip("The points value of this specific firefly.")]
+    [SerializeField] private int _scoreValue = 1;
 
-    [Header("Lévitation")]
-    [SerializeField] private float minY = 0.15f;
-    [SerializeField] private float maxY = 1f;
+    [Header("Visual Feedback")]
+    [Tooltip("Optional particle effect to spawn on collection.")]
+    [SerializeField] private GameObject _collectEffect;
 
-    private float _centerLocalY;
-    private float _bobbingRange;
-
-    private void Start()
+    /// <summary>
+    /// Triggered by the PlayerCollisionController.
+    /// Sends the score value to the EventSystem and destroys the object.
+    /// </summary>
+    public void OnPlayerHit(PlayerCollisionController player)
     {
-        _centerLocalY = (minY + maxY) / 2f;
-        _bobbingRange = (maxY - minY) / 2f;
-
-        _centerLocalY += Random.Range(-0.1f, 0.1f);
-    }
-
-    private void Update()
-    {
-        float newYOffset = Mathf.Sin(Time.time * bobbingSpeed) * _bobbingRange;
-
-        Vector3 newLocalPos = transform.localPosition;
-        newLocalPos.y = _centerLocalY + newYOffset;
-        transform.localPosition = newLocalPos;
-    }
-
-    public override void OnPlayerHit(PlayerCollisionController player)
-    {
-        if (GameManager.Instance != null)
+        // POINT 4: Decoupled scoring logic using the EventSystem
+        if (EventSystem.EventSystemInstance != null)
         {
-            GameManager.Instance.AddScore(scoreValue);
-            Debug.Log($"<color=yellow>FIREFLY : +{scoreValue} !</color>");
+            // Now this method is correctly found in EventSystem
+            EventSystem.EventSystemInstance.TriggerFireflyCollected(_scoreValue);
         }
 
+        // Optional: Spawn particles
+        if (_collectEffect != null)
+        {
+            Instantiate(_collectEffect, transform.position, Quaternion.identity);
+        }
+
+        // Remove the firefly from the world
         Destroy(gameObject);
+
+        Debug.Log($"<color=yellow>FIREFLY: Collected! Signal sent to EventSystem (+{_scoreValue}).</color>");
     }
 }

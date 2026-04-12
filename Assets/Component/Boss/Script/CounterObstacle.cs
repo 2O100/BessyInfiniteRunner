@@ -3,14 +3,14 @@ using UnityEngine;
 public class CounterObstacle : CollidableObject
 {
     [Header("Reflect Settings")]
-    [SerializeField] private float _returnSpeed = 40f;
+    [SerializeField] private float _returnSpeed = 40f; // Speed at which the dung ball returns to the boss
 
-    private bool _isCountered = false;
-    private Transform _target;
+    private bool _isCountered = false; // Tracks if the projectile has been successfully parried
+    private Transform _target;         // Reference to the boss's hit point
 
     private void Update()
     {
-        // Si la bouse est renvoyée, elle se déplace vers le boss
+        // If the dung ball is countered, move it towards the boss target
         if (_isCountered && _target != null)
         {
             transform.position = Vector3.MoveTowards(transform.position, _target.position, _returnSpeed * Time.deltaTime);
@@ -19,48 +19,49 @@ public class CounterObstacle : CollidableObject
 
     private void OnTriggerEnter(Collider other)
     {
-        // IMPORTANT : On ne vérifie le tag Boss QUE si la bouse a été contrée
+        // IMPORTANT: We only check for the Boss tag if the dung ball has been countered first
         if (_isCountered && other.CompareTag("Boss"))
         {
-            Debug.Log("<color=green>[SUCCESS] Impact sur le Boss !</color>");
+            Debug.Log("<color=green>[SUCCESS] Impact on Boss!</color>");
             ApplyDamageToBoss();
         }
     }
 
+    // Triggered by the base CollidableObject system when the player touches the dung ball
     public override void OnPlayerHit(PlayerCollisionController player)
     {
-        // Si la bouse est déjà en train de repartir, on ignore les autres collisions
+        // Ignore further player collisions if the dung ball is already returning
         if (_isCountered) return;
 
-        // On vérifie si le joueur attaque
+        // Check if the player is currently in an attacking state (Dash/Attack)
         if (player.Movement != null && player.Movement.IsAttacking)
         {
             HandleCounter();
         }
         else
         {
-            // Si le joueur n'attaque pas, il prend un dégât NORMAL
-            Debug.Log("<color=red>[FAIL] Le joueur s'est pris la bouse !</color>");
-            player.ApplyDamageToPlayer(); // Assure-toi que cette fonction existe dans ton PlayerCollisionController
+            // If player is not attacking, apply normal damage and destroy projectile
+            Debug.Log("<color=red>[FAIL] Player hit by dung ball!</color>");
+            player.ApplyDamageToPlayer();
             Destroy(gameObject);
         }
     }
 
+    // Logic to flip the projectile's direction towards the boss
     private void HandleCounter()
     {
-        // On récupère la cible dans le GameManager
+        // Retrieve the target point from the GameManager singleton
         if (GameManager.Instance != null && GameManager.Instance.bossShootPoint != null)
         {
             _target = GameManager.Instance.bossShootPoint;
             _isCountered = true;
 
-            Debug.Log("<color=yellow>[Counter] Bouse renvoyée vers : </color>" + _target.name);
+            Debug.Log("<color=yellow>[Counter] Dung ball returned towards: </color>" + _target.name);
 
-            // On arrête la rotation visuelle pour montrer l'impact du coup
+            // Disable visual rotation script to give visual impact feedback
             if (TryGetComponent(out DungBallRotation rot)) rot.enabled = false;
 
-            // On désactive le collider temporairement et on le réactive 
-            // pour être sûr qu'il ne re-touche pas le joueur immédiatement
+            // Briefly disable the collider and re-enable it to prevent instant re-collision with player
             Collider col = GetComponent<Collider>();
             if (col != null)
             {
@@ -70,28 +71,32 @@ public class CounterObstacle : CollidableObject
         }
     }
 
+    // Helper method for the Invoke call
     private void EnableCollider() => GetComponent<Collider>().enabled = true;
 
+    // Logic to communicate the successful hit to the game loop
     private void ApplyDamageToBoss()
     {
         if (GameManager.Instance != null)
         {
-            Debug.Log("<color=cyan>[Counter] Envoi du point de dégât au GameManager...</color>");
+            Debug.Log("<color=cyan>[Counter] Sending damage point to GameManager...</color>");
             GameManager.Instance.TakeBossDamage(1);
         }
         else
         {
-            // Si tu vois ce message en rouge, c'est que ton GameManager est mal configuré
-            Debug.LogError("[Counter] ERREUR : Le GameManager.Instance est introuvable !");
+            // Error handling if the singleton is missing in the scene
+            Debug.LogError("[Counter] ERROR: GameManager.Instance not found!");
         }
 
-        // Destroy(gameObject); // (Mets-le en commentaire temporairement)
+        // Note: Destroy(gameObject) is usually called here after impact
     }
+
+    // Debugging tool to track lifecycle of countered projectiles
     private void OnDestroy()
     {
         if (_isCountered)
         {
-            Debug.Log("<color=orange>[DEBUG] La bouse contrée vient d'être détruite !</color>");
+            Debug.Log("<color=orange>[DEBUG] Countered dung ball has been destroyed!</color>");
         }
     }
 }

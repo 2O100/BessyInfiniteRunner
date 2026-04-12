@@ -4,22 +4,25 @@ using TMPro;
 public class FinalScore : MonoBehaviour
 {
     [Header("UI Display")]
-    public TextMeshProUGUI lenghtText; 
-    public TextMeshProUGUI fireflyText;  
+    [Tooltip("Text component to display the total distance traveled.")]
+    public TextMeshProUGUI lenghtText;
+
+    [Tooltip("Text component to display the total fireflies collected.")]
+    public TextMeshProUGUI fireflyText;
 
     void Start()
     {
-        // On récupère les données sauvegardées dans le GameManager
+        // Retrieve the saved data from the PlayerPrefs (stored by GameManager during GameOver)
         int finalDistance = PlayerPrefs.GetInt("FinalDistance", 0);
         int finalFireflies = PlayerPrefs.GetInt("FinalFireflies", 0);
 
-        // On affiche la distance (en cm comme dans le jeu)
+        // Display the distance (matching the CM format used in-game)
         if (lenghtText != null)
         {
             lenghtText.text = "TOTAL DISTANCE: " + finalDistance + " CM";
         }
 
-        // On affiche le nombre de lucioles
+        // Display the total count of fireflies collected
         if (fireflyText != null)
         {
             fireflyText.text = "x" + finalFireflies;

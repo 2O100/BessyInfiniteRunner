@@ -4,18 +4,18 @@ public class LaserTargetMovement : MonoBehaviour
 {
     public enum TargetState { Inactive, Targeting, Fire }
 
-    [Header("État Actuel")]
+    [Header("Current State")]
     public TargetState currentState = TargetState.Inactive;
 
-    [Header("Réglages")]
-    public float targetingDuration = 5f; // Temps de clignotement
-    public float fireDuration = 2f;      // Fenêtre de tir max avant reset auto
-    public float flashSpeed = 0.2f;
+    [Header("Settings")]
+    public float targetingDuration = 5f; // Duration of the blinking phase
+    public float fireDuration = 2f;      // Max window to shoot before auto-reset
+    public float flashSpeed = 0.2f;      // Speed of the sprite flashing
 
-    [Header("Références")]
-    public UFOLaserShooter ufo;
-    public Transform[] targetSlides;
-    public AudioSource alertAudio;
+    [Header("References")]
+    public UFOLaserShooter ufo;          // Reference to the UFO shooter script
+    public Transform[] targetSlides;     // Possible spawn positions (lanes)
+    public AudioSource alertAudio;       // Sound played during targeting
 
     private SpriteRenderer _sprite;
     private SphereCollider _collider;
@@ -30,15 +30,17 @@ public class LaserTargetMovement : MonoBehaviour
 
     private void OnEnable()
     {
-        // On écoute le signal de reset venant de l'UFO
+        // Subscribe to the reset signal from the UFO via EventSystem
         if (EventSystem.EventSystemInstance != null)
             EventSystem.EventSystemInstance.OnTargetReset += ForceExternalReset;
 
+        // Start targeting as soon as the object is enabled
         TransitionToState(TargetState.Targeting);
     }
 
     private void OnDisable()
     {
+        // Unsubscribe to avoid memory leaks or errors
         if (EventSystem.EventSystemInstance != null)
             EventSystem.EventSystemInstance.OnTargetReset -= ForceExternalReset;
     }
@@ -65,25 +67,27 @@ public class LaserTargetMovement : MonoBehaviour
 
         if (newState == TargetState.Targeting)
         {
-            // Téléportation aléatoire sur une slide
+            // Randomly teleport to one of the target lanes
             if (targetSlides != null && targetSlides.Length > 0)
                 transform.position = targetSlides[Random.Range(0, targetSlides.Length)].position;
 
-            _collider.enabled = false;
-            if (ufo != null) ufo.SetAttackWindow(false);
+            _collider.enabled = false; // Disable collision during targeting
+            if (ufo != null) ufo.SetAttackWindow(false); // UFO cannot shoot yet
             if (alertAudio != null) alertAudio.Play();
         }
         else if (newState == TargetState.Fire)
         {
+            // Transition to firing window
             _sprite.enabled = true;
-            _collider.enabled = true;
-            if (ufo != null) ufo.SetAttackWindow(true);
+            _collider.enabled = true; // Enable collision so player can trigger the shot
+            if (ufo != null) ufo.SetAttackWindow(true); // UFO is now ready to fire
             if (alertAudio != null) alertAudio.Stop();
         }
     }
 
     private void UpdateTargeting()
     {
+        // Handle flashing visual effect
         _flashTimer += Time.deltaTime;
         if (_flashTimer >= flashSpeed)
         {
@@ -91,20 +95,21 @@ public class LaserTargetMovement : MonoBehaviour
             _flashTimer = 0;
         }
 
+        // Switch to Fire state once duration is reached
         if (_stateTimer >= targetingDuration)
             TransitionToState(TargetState.Fire);
     }
 
     private void UpdateFire()
     {
-        // RESET AUTO : Si le temps expire sans que le joueur déclenche un tir
+        // AUTO RESET: If the firing window expires without player interaction
         if (_stateTimer >= fireDuration)
             TransitionToState(TargetState.Targeting);
     }
 
+    // Called via EventSystem when the UFO has finished its firing sequence
     public void ForceExternalReset()
     {
-        // Appelé via l'EventSystem quand l'UFO a fini de tirer
         TransitionToState(TargetState.Targeting);
     }
 }
