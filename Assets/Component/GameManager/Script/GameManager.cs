@@ -5,166 +5,102 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance; // Singleton instance to access GameManager from anywhere
+    public static GameManager Instance;
 
     [Header("Player Settings")]
     [SerializeField] private int _maxHealth = 3;
     private int _currentHealth;
 
     [Header("Boss Settings")]
-    [SerializeField] private int _bossMaxHealth = 10;
+    [SerializeField] private int _bossMaxHealth = 9;
     private int _currentBossHealth;
     public TextMeshProUGUI bossPercentText;
 
     [Header("Boss References")]
-    public Transform bossShootPoint; //For CounterObstacle
+    public Transform bossShootPoint;
 
     [Header("UI References")]
-    public Image[] healthIcons;       // Array of UI Images (the bells)
-    public Sprite fullBellSprite;     // Sprite for active health
-    public Sprite emptyBellSprite;    // Sprite for lost health
-    public TextMeshProUGUI scoreText; // UI Text for distance
+    public Image[] healthIcons;
+    public Sprite fullBellSprite;
+    public Sprite emptyBellSprite;
+    public TextMeshProUGUI scoreText;   
+    public TextMeshProUGUI fireflyText; 
     public Slider bossHealthSlider;
 
     [Header("Game Progression")]
     private float _distance = 0f;
-    public float gameSpeedMultiplier = 16f; // Controls the scrolling speed of the world
+    private int _fireflyCount = 0;
+    public float gameSpeedMultiplier = 16f;
 
     private void Awake()
     {
-        // Setup Singleton pattern
         if (Instance == null) Instance = this;
-
-        // Initialize health values
         _currentHealth = _maxHealth;
         _currentBossHealth = _bossMaxHealth;
-        bossHealthSlider.maxValue = _bossMaxHealth;
     }
 
     private void Start()
     {
         UpdateHealthUI();
-
+        UpdateFireflyUI(); // Affiche "x0" dès le lancement
+        if (bossHealthSlider != null) bossHealthSlider.maxValue = _bossMaxHealth;
     }
 
     private void Update()
     {
-        // Increment distance based on time and current speed
         _distance += Time.deltaTime * gameSpeedMultiplier;
-
-        // Update the UI text (rounded down to nearest meter)
         if (scoreText != null)
         {
-            scoreText.text = Mathf.FloorToInt(_distance).ToString() + " m";
+            scoreText.text = "LENGHT " + Mathf.FloorToInt(_distance).ToString() + " CM";
         }
     }
 
-    public void LevelUpBoss()
+    // --- SYSTÈME DE COLLECTIBLES ---
+    public void AddScore(int amount)
     {
-        // 1. On augmente le palier
-        _bossMaxHealth += 1;
-
-        // 2. On remplit la vie au NOUVEAU max
-        _currentBossHealth = _bossMaxHealth;
-
-        // 3. On met à jour le Slider (le contenant)
-        if (bossHealthSlider != null)
-        {
-            bossHealthSlider.maxValue = _bossMaxHealth;
-            bossHealthSlider.value = _currentBossHealth;
-        }
-
-        // 4. On met à jour le Texte % (le contenu)
-        UpdateBossUI();
-
-        Debug.Log("BOSS LEVEL UP : Vie actuelle " + _currentBossHealth + " sur " + _bossMaxHealth);
+        _fireflyCount += amount;
+        UpdateFireflyUI();
     }
 
-    public void ShowBossHealthBar(bool isVisible)
+    private void UpdateFireflyUI()
     {
-        if (bossHealthSlider != null)
+        if (fireflyText != null)
         {
-            bossHealthSlider.gameObject.SetActive(isVisible);
+            fireflyText.text = "x" + _fireflyCount.ToString();
         }
     }
 
-    // Called when the player hits a standard obstacle
-    // On ajoute "int amount" pour que la fonction puisse recevoir un chiffre
+    // --- RESTE DU CODE (BOSS & DAMAGE) ---
     public void TakeDamage(int amount)
     {
-        // On soustrait le montant (si amount est -1, ça ajoute +1)
         _currentHealth -= amount;
-
-        // Sécurité : on empêche la vie de dépasser le max ou de descendre sous 0
         _currentHealth = Mathf.Clamp(_currentHealth, 0, _maxHealth);
-
         UpdateHealthUI();
-
-        if (_currentHealth <= 0)
-        {
-            GameOver();
-        }
+        if (_currentHealth <= 0) GameOver();
     }
-
-    // Called when a DungBall is successfully countered back at the Boss
-    [HideInInspector] public int bossHealth = 10;
 
     public void TakeBossDamage(int damage)
     {
-        bossHealth -= damage;
-        // CE LOG EST INDISPENSABLE POUR SAVOIR SI CA MARCHE
-        Debug.Log("<color=red>[GameManager] Le Boss a été touché ! Vie restante : </color>" + bossHealth);
-
         if (_currentBossHealth <= 0) return;
-
         _currentBossHealth -= damage;
-        UpdateBossUI(); // Ton Slider
-
+        UpdateBossUI();
         if (_currentBossHealth <= 0)
         {
             _currentBossHealth = 0;
-
-            // On prévient l'EventSystem
-            if (EventSystem.EventSystemInstance != null)
-            {
-                EventSystem.EventSystemInstance.TriggerBossDefeated();
-            }
+            EventSystem.EventSystemInstance?.TriggerBossDefeated();
         }
-
     }
 
     private void UpdateBossUI()
     {
-        if (bossHealthSlider != null)
-        {
-            bossHealthSlider.value = _currentBossHealth;
-        }
-
+        if (bossHealthSlider != null) bossHealthSlider.value = _currentBossHealth;
         if (bossPercentText != null)
         {
-            // On force le calcul en float pour éviter que 11/12 donne 0
             float percentage = ((float)_currentBossHealth / (float)_bossMaxHealth) * 100f;
-
-            // F2 pour le format 00.00%
             bossPercentText.text = percentage.ToString("F2") + "%";
         }
     }
 
-
-    // Logic executed when Boss health reaches zero
-    private void BossDefeated()
-    {
-        Debug.Log("<color=yellow>[GameManager] Boss Stunned! Switching to Waiting phase.</color>");
-
-        // Find the Boss state machine and force it back to Waiting
-        BossStateMachine boss = Object.FindFirstObjectByType<BossStateMachine>();
-        if (boss != null) boss.EndBossAttack();
-
-        // Reset Boss health for the next encounter
-        _currentBossHealth = _bossMaxHealth;
-    }
-
-    // Updates the bell icons in the UI
     private void UpdateHealthUI()
     {
         if (healthIcons == null) return;
@@ -175,13 +111,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Used by external triggers to speed up or slow down the game
-    public void SetSpeedMultiplier(float value) => gameSpeedMultiplier = value;
+    public void ShowBossHealthBar(bool isVisible) => bossHealthSlider?.gameObject.SetActive(isVisible);
+    public void LevelUpBoss() { /* Ton code de level up */ }
 
     private void GameOver()
     {
-        // Save score and switch to Game Over scene
-        PlayerPrefs.SetInt("FinalScore", Mathf.FloorToInt(_distance));
+        PlayerPrefs.SetInt("FinalDistance", Mathf.FloorToInt(_distance));
+        PlayerPrefs.SetInt("FinalFireflies", _fireflyCount);
         SceneManager.LoadScene("GameOver");
     }
 }

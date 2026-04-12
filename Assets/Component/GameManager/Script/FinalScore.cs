@@ -1,30 +1,28 @@
 using UnityEngine;
-using TMPro; // Required for TextMeshPro
+using TMPro;
 
 public class FinalScore : MonoBehaviour
 {
-    // Reference to your UI Text component
-    public TextMeshProUGUI scoreDisplayText;
+    [Header("UI Display")]
+    public TextMeshProUGUI lenghtText; 
+    public TextMeshProUGUI fireflyText;  
 
     void Start()
     {
-        // We retrieve the score saved by the GameManager
-        // "FinalScore" is the key we used in PlayerPrefs.SetInt
-        int distanceReached = PlayerPrefs.GetInt("FinalScore", 0);
+        // On récupère les données sauvegardées dans le GameManager
+        int finalDistance = PlayerPrefs.GetInt("FinalDistance", 0);
+        int finalFireflies = PlayerPrefs.GetInt("FinalFireflies", 0);
 
-        // Display the result in English
-        if (scoreDisplayText != null)
+        // On affiche la distance (en cm comme dans le jeu)
+        if (lenghtText != null)
         {
-            scoreDisplayText.text = "Final Distance: " + distanceReached + " m";
+            lenghtText.text = "TOTAL DISTANCE: " + finalDistance + " CM";
         }
-        else
+
+        // On affiche le nombre de lucioles
+        if (fireflyText != null)
         {
-            // Fallback: try to get the component on the same object
-            scoreDisplayText = GetComponent<TextMeshProUGUI>();
-            if (scoreDisplayText != null)
-            {
-                scoreDisplayText.text = "Final Distance: " + distanceReached + " m";
-            }
+            fireflyText.text = "x" + finalFireflies;
         }
     }
 }

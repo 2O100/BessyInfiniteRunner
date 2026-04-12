@@ -7,8 +7,10 @@ public class EventSystem : MonoBehaviour
 
     public event Action<Vector3> OnPlayerOnTarget;
     public event Action OnTargetReset;
-
     public event Action OnPlayerHit;
+
+    // --- NOUVEAU : Événement centralisé pour l'état du Boss ---
+    public static event Action<BossStateMachine.BossState> OnBossStateChanged;
 
     private void Awake()
     {
@@ -25,25 +27,22 @@ public class EventSystem : MonoBehaviour
         OnTargetReset?.Invoke();
     }
 
-    // Appelé par ton PlayerCollisionController
     public void TriggerPlayerHit()
     {
         Debug.Log("<color=yellow>EVENTSYSTEM : J'ai reçu l'alerte du Player, je contacte le GameManager...</color>");
+        if (GameManager.Instance != null) GameManager.Instance.TakeDamage(1);
+    }
 
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.TakeDamage(1);
-        }
-        else
-        {
-            Debug.LogError("EVENTSYSTEM : Je ne trouve pas le GameManager ! Vérifie qu'il est bien dans ta scène.");
-        }
+    // --- NOUVELLE MÉTHODE : Pour diffuser le changement d'état ---
+    public void TriggerBossStateChanged(BossStateMachine.BossState newState)
+    {
+        OnBossStateChanged?.Invoke(newState);
     }
 
     public static event Action OnBossDefeated;
     public void TriggerBossDefeated()
     {
-        Debug.Log("<color=cyan>EVENTSYSTEM : Le Boss est vaincu, j'alerte les autres systèmes...</color>");
+        Debug.Log("<color=cyan>EVENTSYSTEM : Le Boss est vaincu !</color>");
         OnBossDefeated?.Invoke();
     }
 }

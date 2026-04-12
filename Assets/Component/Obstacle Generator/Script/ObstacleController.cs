@@ -17,15 +17,22 @@ public class ObstacleController : MonoBehaviour
     [Range(0, 100)] public float dungBallSpawnChance = 30f;
     public BossStateMachine bossStateMachine;
 
-    [Header("Bonus Settings")]
-    [SerializeField] private GameObject bonusPrefab;
-    private bool _shouldSpawnBonus = false;
+    [Header("Bonus & Collectibles")]
+    [SerializeField] private GameObject healthBonusPrefab;
+    [Range(0, 100)] public float healthSpawnChance = 15f;
+    [Space]
+    [SerializeField] private GameObject fireflyPrefab;
+    [Range(0, 100)] public float fireflySpawnChance = 60f;
 
     private readonly List<ChunkController> _instancesChunks = new List<ChunkController>();
     private float _currentMultiplier = 1f;
 
-
     private void Start() => AddBaseChunks();
+
+    void OnEnable() { EventSystem.OnBossStateChanged += HandleBossStateChange; }
+    void OnDisable() { EventSystem.OnBossStateChanged -= HandleBossStateChange; }
+
+    private void HandleBossStateChange(BossStateMachine.BossState newState) { }
 
     private void Update()
     {
@@ -45,7 +52,6 @@ public class ObstacleController : MonoBehaviour
             if (chunk.IsBehindPlayer()) behindChunks.Add(chunk);
         }
 
-        // Garder 2 chunks derrière
         if (behindChunks.Count > _chunksToKeepBehind)
         {
             int chunksToDeleteCount = behindChunks.Count - _chunksToKeepBehind;
@@ -60,46 +66,30 @@ public class ObstacleController : MonoBehaviour
         int missingChunkCount = _activeChunkCount - _instancesChunks.Count;
         for (int i = 0; i < missingChunkCount; i++)
         {
-            // Utilisation de TA syntaxe exacte : .EndAnchor sans .position derrière
             var chunk = AddChunk(LastActiveChunk().EndAnchor);
             _instancesChunks.Add(chunk);
-            SpawnDungBall(chunk);
+
+            if (bossStateMachine != null)
+            {
+                if (bossStateMachine.currentState == BossStateMachine.BossState.Attacking)
+                {
+                    SpawnItemOnChunk(chunk, dungBallPrefab, dungBallSpawnChance, 0.5f);
+                }
+                else if (bossStateMachine.currentState == BossStateMachine.BossState.Waiting)
+                {
+                    // On tente de spawn les deux, le hasard décidera !
+                    SpawnItemOnChunk(chunk, healthBonusPrefab, healthSpawnChance, 1.5f);
+                    SpawnItemOnChunk(chunk, fireflyPrefab, fireflySpawnChance, 2.0f);
+                }
+            }
         }
     }
 
-    private void OnEnable()
+    private void SpawnItemOnChunk(ChunkController targetChunk, GameObject prefab, float chance, float yOffset)
     {
-        // On s'abonne à l'événement de mort du boss
-        if (EventSystem.EventSystemInstance != null)
-        {
-            EventSystem.OnBossDefeated += PrepareBonus;
-        }
-    }
+        if (prefab == null) return;
 
-    private void OnDisable()
-    {
-        // TRÈS IMPORTANT : On se désabonne pour éviter les fuites de mémoire
-        if (EventSystem.EventSystemInstance != null)
-        {
-            EventSystem.OnBossDefeated -= PrepareBonus;
-        }
-    }
-
-    private void PrepareBonus()
-    {
-        _shouldSpawnBonus = true;
-
-        Debug.Log("<color=green>[ObstacleController]</color> Bonus prêt pour le prochain spawn !");
-    }
-
-    public void SpawnDungBall(ChunkController targetChunk)
-    {
-        if (bossStateMachine == null || bossStateMachine.currentState != BossStateMachine.BossState.Attacking)
-            return;
-
-
-
-        if (Random.Range(0f, 100f) <= dungBallSpawnChance)
+        if (Random.Range(0f, 100f) <= chance)
         {
             List<Transform> spawnPoints = new List<Transform>();
             foreach (Transform child in targetChunk.transform)
@@ -110,7 +100,10 @@ public class ObstacleController : MonoBehaviour
             if (spawnPoints.Count > 0)
             {
                 Transform selectedPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
-                GameObject dungBall = Instantiate(dungBallPrefab, selectedPoint.position, Quaternion.identity, targetChunk.transform);
+                Vector3 finalPos = selectedPoint.position;
+                finalPos.y += yOffset;
+
+                Instantiate(prefab, finalPos, Quaternion.identity, targetChunk.transform);
             }
         }
     }
@@ -118,37 +111,20 @@ public class ObstacleController : MonoBehaviour
     private void AddBaseChunks()
     {
         _instancesChunks.Clear();
-
-        // 1. On crée le premier chunk
         var firstChunk = AddChunk(Vector3.zero);
-
-        // 2. Pour le décalage, on utilise la valeur brute de ton anchor
-        // On suppose que EndAnchor.z est ta longueur
         float chunkLength = firstChunk.EndAnchor.z;
         firstChunk.transform.position = new Vector3(0, 0, -(chunkLength * _chunksToKeepBehind));
-
         _instancesChunks.Add(firstChunk);
-
         for (int i = 0; i < _activeChunkCount - 1; i++)
-        {
             _instancesChunks.Add(AddChunk(LastActiveChunk().EndAnchor));
-        }
     }
 
     private ChunkController AddChunk(Vector3 position)
     {
         if (_chunksPool.Length == 0) return null;
-        int index = Random.Range(0, _chunksPool.Length);
-        return Instantiate(_chunksPool[index], position, Quaternion.identity, transform);
+        return Instantiate(_chunksPool[Random.Range(0, _chunksPool.Length)], position, Quaternion.identity, transform);
     }
 
-    private ChunkController LastActiveChunk()
-    {
-        return _instancesChunks[_instancesChunks.Count - 1];
-    }
-
-    public void SetBossSpeedActive(bool active)
-    {
-        _currentMultiplier = active ? _bossSpeedMultiplier : 1f;
-    }
+    private ChunkController LastActiveChunk() => _instancesChunks[_instancesChunks.Count - 1];
+    public void SetBossSpeedActive(bool active) => _currentMultiplier = active ? _bossSpeedMultiplier : 1f;
 }

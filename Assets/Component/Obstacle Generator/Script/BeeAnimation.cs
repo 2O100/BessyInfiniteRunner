@@ -3,12 +3,12 @@ using UnityEngine;
 public class BeeAnimation : MonoBehaviour
 {
     [Header("Cibles de mouvement")]
-    [SerializeField] private Transform targetLeft;  // Glisse ton BeeSlideTarget gauche ici
-    [SerializeField] private Transform targetRight; // Glisse ton BeeSlideTarget droit ici
+    [SerializeField] private Transform targetLeft;  
+    [SerializeField] private Transform targetRight; 
 
     [Header("Réglages")]
-    [SerializeField] private float speed = 2f;      // Vitesse de déplacement
-    [SerializeField] private float smoothness = 0.1f; // Pour un mouvement plus fluide
+    [SerializeField] private float speed = 2f;      
+    [SerializeField] private float smoothness = 0.1f; 
 
     private Vector3 _currentTarget;
     private Quaternion _lookRight = Quaternion.Euler(0, 180, 0);
@@ -16,7 +16,7 @@ public class BeeAnimation : MonoBehaviour
 
     private void Start()
     {
-        // On commence par aller vers la gauche
+        // Left
         if (targetLeft != null)
         {
             _currentTarget = targetLeft.position;
